@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch with CMake Target",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": ["--watch", "demo.sql"],
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                { "name": "DB_LEX_TRACE", "value": "1" }
+            ],
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "MIMode": "lldb"
+        }
+
+    ]
+}

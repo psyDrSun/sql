@@ -1,0 +1,44 @@
+[
+{
+  "directory": "/Users/drdotsun/Documents/sql/build",
+  "command": "/usr/bin/clang++  -I/Users/drdotsun/Documents/sql/include -g -std=c++17 -arch arm64 -o CMakeFiles/mini_dbms.dir/src/main.cpp.o -c /Users/drdotsun/Documents/sql/src/main.cpp",
+  "file": "/Users/drdotsun/Documents/sql/src/main.cpp",
+  "output": "CMakeFiles/mini_dbms.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Users/drdotsun/Documents/sql/build",
+  "command": "/usr/bin/clang++  -I/Users/drdotsun/Documents/sql/include -g -std=c++17 -arch arm64 -o CMakeFiles/mini_dbms.dir/src/CLIHandler.cpp.o -c /Users/drdotsun/Documents/sql/src/CLIHandler.cpp",
+  "file": "/Users/drdotsun/Documents/sql/src/CLIHandler.cpp",
+  "output": "CMakeFiles/mini_dbms.dir/src/CLIHandler.cpp.o"
+},
+{
+  "directory": "/Users/drdotsun/Documents/sql/build",
+  "command": "/usr/bin/clang++  -I/Users/drdotsun/Documents/sql/include -g -std=c++17 -arch arm64 -o CMakeFiles/mini_dbms.dir/src/SQLParser.cpp.o -c /Users/drdotsun/Documents/sql/src/SQLParser.cpp",
+  "file": "/Users/drdotsun/Documents/sql/src/SQLParser.cpp",
+  "output": "CMakeFiles/mini_dbms.dir/src/SQLParser.cpp.o"
+},
+{
+  "directory": "/Users/drdotsun/Documents/sql/build",
+  "command": "/usr/bin/clang++  -I/Users/drdotsun/Documents/sql/include -g -std=c++17 -arch arm64 -o CMakeFiles/mini_dbms.dir/src/ExecutionEngine.cpp.o -c /Users/drdotsun/Documents/sql/src/ExecutionEngine.cpp",
+  "file": "/Users/drdotsun/Documents/sql/src/ExecutionEngine.cpp",
+  "output": "CMakeFiles/mini_dbms.dir/src/ExecutionEngine.cpp.o"
+},
+{
+  "directory": "/Users/drdotsun/Documents/sql/build",
+  "command": "/usr/bin/clang++  -I/Users/drdotsun/Documents/sql/include -g -std=c++17 -arch arm64 -o CMakeFiles/mini_dbms.dir/src/CatalogManager.cpp.o -c /Users/drdotsun/Documents/sql/src/CatalogManager.cpp",
+  "file": "/Users/drdotsun/Documents/sql/src/CatalogManager.cpp",
+  "output": "CMakeFiles/mini_dbms.dir/src/CatalogManager.cpp.o"
+},
+{
+  "directory": "/Users/drdotsun/Documents/sql/build",
+  "command": "/usr/bin/clang++  -I/Users/drdotsun/Documents/sql/include -g -std=c++17 -arch arm64 -o CMakeFiles/mini_dbms.dir/src/StorageManager.cpp.o -c /Users/drdotsun/Documents/sql/src/StorageManager.cpp",
+  "file": "/Users/drdotsun/Documents/sql/src/StorageManager.cpp",
+  "output": "CMakeFiles/mini_dbms.dir/src/StorageManager.cpp.o"
+},
+{
+  "directory": "/Users/drdotsun/Documents/sql/build",
+  "command": "/usr/bin/clang++  -I/Users/drdotsun/Documents/sql/include -g -std=c++17 -arch arm64 -o CMakeFiles/mini_dbms.dir/src/Types.cpp.o -c /Users/drdotsun/Documents/sql/src/Types.cpp",
+  "file": "/Users/drdotsun/Documents/sql/src/Types.cpp",
+  "output": "CMakeFiles/mini_dbms.dir/src/Types.cpp.o"
+}
+]

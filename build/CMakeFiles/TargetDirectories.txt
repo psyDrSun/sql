@@ -1,0 +1,3 @@
+/Users/drdotsun/Documents/sql/build/CMakeFiles/mini_dbms.dir
+/Users/drdotsun/Documents/sql/build/CMakeFiles/edit_cache.dir
+/Users/drdotsun/Documents/sql/build/CMakeFiles/rebuild_cache.dir
