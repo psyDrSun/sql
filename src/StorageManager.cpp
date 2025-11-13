@@ -1,3 +1,5 @@
+
+
 #include "db/StorageManager.hpp"
 
 #include "db/CatalogManager.hpp"
@@ -11,18 +13,31 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+using namespace std;
+
+
+
+
+using filesystem::create_directories;
+using filesystem::exists;
+using filesystem::remove;
+using filesystem::rename;
+using filesystem::filesystem_error;
 
 namespace db {
 
 namespace {
 
-std::string join_path(const std::string& base, const std::string& name) {
+
+
+string join_path(const string& base, const string& name) {
     return base + '/' + name + ".csv";
 }
 
-std::vector<std::string> split_csv_line(const std::string& line) {
-    std::vector<std::string> tokens;
-    std::string current;
+
+vector<string> split_csv_line(const string& line) {
+    vector<string> tokens;
+    string current;
     bool in_quotes = false;
     for (char ch : line) {
         if (ch == '"') {
@@ -40,9 +55,10 @@ std::vector<std::string> split_csv_line(const std::string& line) {
     return tokens;
 }
 
-std::string escape_csv_field(const std::string& value) {
-    if (value.find(',') != std::string::npos || value.find('"') != std::string::npos) {
-        std::string escaped;
+
+string escape_csv_field(const string& value) {
+    if (value.find(',') != string::npos || value.find('"') != string::npos) {
+        string escaped;
         escaped.reserve(value.size());
         for (char ch : value) {
             if (ch == '"') {
@@ -55,9 +71,10 @@ std::string escape_csv_field(const std::string& value) {
     return value;
 }
 
-std::string join_csv_fields(const std::vector<std::string>& fields) {
-    std::ostringstream oss;
-    for (std::size_t i = 0; i < fields.size(); ++i) {
+
+string join_csv_fields(const vector<string>& fields) {
+    ostringstream oss;
+    for (size_t i = 0; i < fields.size(); ++i) {
         oss << escape_csv_field(fields[i]);
         if (i + 1 < fields.size()) {
             oss << ',';
@@ -66,20 +83,20 @@ std::string join_csv_fields(const std::vector<std::string>& fields) {
     return oss.str();
 }
 
-} // namespace
+} 
 
-StorageManager::StorageManager(const std::string& base_path) : base_path_(base_path) {
-    std::filesystem::create_directories(base_path_);
+StorageManager::StorageManager(const string& base_path) : b_(base_path) {
+    create_directories(b_);
 }
 
 void StorageManager::create_table_storage(const TableSchema& schema) {
-    const auto path = join_path(base_path_, schema.name);
-    std::ofstream file(path, std::ios::trunc);
+    const auto path = join_path(b_, schema.name);
+    ofstream file(path, ios::trunc);
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to create storage file: " + path);
+        throw runtime_error("Failed to create storage file: " + path);
     }
 
-    std::vector<std::string> headers;
+    vector<string> headers;
     headers.reserve(schema.columns.size());
     for (const auto& column : schema.columns) {
         headers.push_back(column.name);
@@ -87,39 +104,39 @@ void StorageManager::create_table_storage(const TableSchema& schema) {
     file << join_csv_fields(headers) << '\n';
 }
 
-void StorageManager::drop_table_storage(const std::string& table_name) {
-    const auto path = join_path(base_path_, table_name);
-    if (std::filesystem::exists(path)) {
-        std::filesystem::remove(path);
+void StorageManager::drop_table_storage(const string& table_name) {
+    const auto path = join_path(b_, table_name);
+    if (exists(path)) {
+        remove(path);
     }
 }
 
-void StorageManager::rename_table_storage(const std::string& old_name, const std::string& new_name) {
-    const auto old_path = join_path(base_path_, old_name);
-    const auto new_path = join_path(base_path_, new_name);
+void StorageManager::rename_table_storage(const string& old_name, const string& new_name) {
+    const auto old_path = join_path(b_, old_name);
+    const auto new_path = join_path(b_, new_name);
 
-    if (!std::filesystem::exists(old_path)) {
+    if (!exists(old_path)) {
         return;
     }
 
     try {
-        std::filesystem::rename(old_path, new_path);
-    } catch (const std::filesystem::filesystem_error& ex) {
-        throw std::runtime_error("Failed to rename storage file: " + std::string(ex.what()));
+        rename(old_path, new_path);
+    } catch (const filesystem_error& ex) {
+        throw runtime_error("Failed to rename storage file: " + string(ex.what()));
     }
 }
 
-void StorageManager::add_column(const std::string& table_name, const ColumnSchema& column) {
-    const auto path = join_path(base_path_, table_name);
-    std::ifstream input(path);
+void StorageManager::add_column(const string& table_name, const ColumnSchema& column) {
+    const auto path = join_path(b_, table_name);
+    ifstream input(path);
     if (!input.is_open()) {
-        throw std::runtime_error("Failed to open table file for column addition: " + path);
+        throw runtime_error("Failed to open table file for column addition: " + path);
     }
 
-    std::vector<std::string> lines;
-    std::string line;
+    vector<string> lines;
+    string line;
     bool is_header = true;
-    while (std::getline(input, line)) {
+    while (getline(input, line)) {
         if (!line.empty() && line.back() == '\r') {
             line.pop_back();
         }
@@ -138,15 +155,15 @@ void StorageManager::add_column(const std::string& table_name, const ColumnSchem
     input.close();
 
     if (lines.empty()) {
-        throw std::runtime_error("Table storage is empty when attempting to add a column: " + path);
+        throw runtime_error("Table storage is empty when attempting to add a column: " + path);
     }
 
-    std::ofstream output(path, std::ios::trunc);
+    ofstream output(path, ios::trunc);
     if (!output.is_open()) {
-        throw std::runtime_error("Failed to write table file during column addition: " + path);
+        throw runtime_error("Failed to write table file during column addition: " + path);
     }
 
-    for (std::size_t i = 0; i < lines.size(); ++i) {
+    for (size_t i = 0; i < lines.size(); ++i) {
         output << lines[i];
         if (i + 1 < lines.size()) {
             output << '\n';
@@ -154,18 +171,18 @@ void StorageManager::add_column(const std::string& table_name, const ColumnSchem
     }
 }
 
-void StorageManager::drop_column(const std::string& table_name, const std::string& column_name) {
-    const auto path = join_path(base_path_, table_name);
-    std::ifstream input(path);
+void StorageManager::drop_column(const string& table_name, const string& column_name) {
+    const auto path = join_path(b_, table_name);
+    ifstream input(path);
     if (!input.is_open()) {
-        throw std::runtime_error("Failed to open table file for column drop: " + path);
+        throw runtime_error("Failed to open table file for column drop: " + path);
     }
 
-    std::vector<std::string> lines;
-    std::string line;
-    std::optional<std::size_t> column_index;
+    vector<string> lines;
+    string line;
+    optional<size_t> column_index;
     bool header = true;
-    while (std::getline(input, line)) {
+    while (getline(input, line)) {
         if (!line.empty() && line.back() == '\r') {
             line.pop_back();
         }
@@ -173,32 +190,32 @@ void StorageManager::drop_column(const std::string& table_name, const std::strin
 
         if (header) {
             header = false;
-            auto it = std::find(tokens.begin(), tokens.end(), column_name);
+            auto it = find(tokens.begin(), tokens.end(), column_name);
             if (it == tokens.end()) {
-                throw std::runtime_error("Column not found in storage: " + column_name);
+                throw runtime_error("Column not found in storage: " + column_name);
             }
-            column_index = static_cast<std::size_t>(std::distance(tokens.begin(), it));
+            column_index = static_cast<size_t>(distance(tokens.begin(), it));
         }
 
         if (!column_index.has_value() || column_index.value() >= tokens.size()) {
-            throw std::runtime_error("Column index out of range during drop: " + column_name);
+            throw runtime_error("Column index out of range during drop: " + column_name);
         }
 
-        tokens.erase(tokens.begin() + static_cast<std::ptrdiff_t>(column_index.value()));
+        tokens.erase(tokens.begin() + static_cast<ptrdiff_t>(column_index.value()));
         lines.push_back(join_csv_fields(tokens));
     }
 
     input.close();
 
     if (!column_index.has_value()) {
-        throw std::runtime_error("Column not found in storage: " + column_name);
+        throw runtime_error("Column not found in storage: " + column_name);
     }
 
-    std::ofstream output(path, std::ios::trunc);
+    ofstream output(path, ios::trunc);
     if (!output.is_open()) {
-        throw std::runtime_error("Failed to write table file during column drop: " + path);
+        throw runtime_error("Failed to write table file during column drop: " + path);
     }
-    for (std::size_t i = 0; i < lines.size(); ++i) {
+    for (size_t i = 0; i < lines.size(); ++i) {
         output << lines[i];
         if (i + 1 < lines.size()) {
             output << '\n';
@@ -206,18 +223,18 @@ void StorageManager::drop_column(const std::string& table_name, const std::strin
     }
 }
 
-void StorageManager::modify_column(const std::string& table_name, const ColumnSchema& column) {
-    const auto path = join_path(base_path_, table_name);
-    std::ifstream input(path);
+void StorageManager::modify_column(const string& table_name, const ColumnSchema& column) {
+    const auto path = join_path(b_, table_name);
+    ifstream input(path);
     if (!input.is_open()) {
-        throw std::runtime_error("Failed to open table file for column modify: " + path);
+        throw runtime_error("Failed to open table file for column modify: " + path);
     }
 
-    std::vector<std::string> lines;
-    std::string line;
-    std::optional<std::size_t> column_index;
+    vector<string> lines;
+    string line;
+    optional<size_t> column_index;
     bool header = true;
-    while (std::getline(input, line)) {
+    while (getline(input, line)) {
         if (!line.empty() && line.back() == '\r') {
             line.pop_back();
         }
@@ -225,11 +242,11 @@ void StorageManager::modify_column(const std::string& table_name, const ColumnSc
 
         if (header) {
             header = false;
-            auto it = std::find(tokens.begin(), tokens.end(), column.name);
+            auto it = find(tokens.begin(), tokens.end(), column.name);
             if (it == tokens.end()) {
-                throw std::runtime_error("Column not found in storage: " + column.name);
+                throw runtime_error("Column not found in storage: " + column.name);
             }
-            column_index = static_cast<std::size_t>(std::distance(tokens.begin(), it));
+            column_index = static_cast<size_t>(distance(tokens.begin(), it));
             tokens[column_index.value()] = column.name;
         }
 
@@ -239,14 +256,14 @@ void StorageManager::modify_column(const std::string& table_name, const ColumnSc
     input.close();
 
     if (!column_index.has_value()) {
-        throw std::runtime_error("Column not found in storage: " + column.name);
+        throw runtime_error("Column not found in storage: " + column.name);
     }
 
-    std::ofstream output(path, std::ios::trunc);
+    ofstream output(path, ios::trunc);
     if (!output.is_open()) {
-        throw std::runtime_error("Failed to write table file during column modify: " + path);
+        throw runtime_error("Failed to write table file during column modify: " + path);
     }
-    for (std::size_t i = 0; i < lines.size(); ++i) {
+    for (size_t i = 0; i < lines.size(); ++i) {
         output << lines[i];
         if (i + 1 < lines.size()) {
             output << '\n';
@@ -254,21 +271,21 @@ void StorageManager::modify_column(const std::string& table_name, const ColumnSc
     }
 }
 
-std::vector<std::vector<std::string>> StorageManager::read_all_rows(const std::string& table_name) const {
-    const auto path = join_path(base_path_, table_name);
-    std::ifstream input(path);
+vector<vector<string>> StorageManager::read_all_rows(const string& table_name) const {
+    const auto path = join_path(b_, table_name);
+    ifstream input(path);
     if (!input.is_open()) {
-        throw std::runtime_error("Failed to open table file for reading: " + path);
+        throw runtime_error("Failed to open table file for reading: " + path);
     }
 
-    std::string header;
-    if (!std::getline(input, header)) {
+    string header;
+    if (!getline(input, header)) {
         return {};
     }
 
-    std::vector<std::vector<std::string>> rows;
-    std::string line;
-    while (std::getline(input, line)) {
+    vector<vector<string>> rows;
+    string line;
+    while (getline(input, line)) {
         if (!line.empty() && line.back() == '\r') {
             line.pop_back();
         }
@@ -277,31 +294,31 @@ std::vector<std::vector<std::string>> StorageManager::read_all_rows(const std::s
     return rows;
 }
 
-void StorageManager::append_row(const std::string& table_name, const std::vector<std::string>& values) {
-    const auto path = join_path(base_path_, table_name);
-    std::ofstream output(path, std::ios::app);
+void StorageManager::append_row(const string& table_name, const vector<string>& values) {
+    const auto path = join_path(b_, table_name);
+    ofstream output(path, ios::app);
     if (!output.is_open()) {
-        throw std::runtime_error("Failed to open table file for append: " + path);
+        throw runtime_error("Failed to open table file for append: " + path);
     }
     output << join_csv_fields(values) << '\n';
 }
 
-void StorageManager::write_all_rows(const std::string& table_name, const TableSchema& schema,
-                                    const std::vector<std::vector<std::string>>& rows) {
-    const auto path = join_path(base_path_, table_name);
-    std::ofstream output(path, std::ios::trunc);
+void StorageManager::write_all_rows(const string& table_name, const TableSchema& schema,
+                                    const vector<vector<string>>& rows) {
+    const auto path = join_path(b_, table_name);
+    ofstream output(path, ios::trunc);
     if (!output.is_open()) {
-        throw std::runtime_error("Failed to open table file for write: " + path);
+        throw runtime_error("Failed to open table file for write: " + path);
     }
 
-    std::vector<std::string> headers;
+    vector<string> headers;
     headers.reserve(schema.columns.size());
     for (const auto& column : schema.columns) {
         headers.push_back(column.name);
     }
     output << join_csv_fields(headers) << '\n';
 
-    for (std::size_t i = 0; i < rows.size(); ++i) {
+    for (size_t i = 0; i < rows.size(); ++i) {
         output << join_csv_fields(rows[i]);
         if (i + 1 < rows.size()) {
             output << '\n';
@@ -309,4 +326,4 @@ void StorageManager::write_all_rows(const std::string& table_name, const TableSc
     }
 }
 
-} // namespace db
+} 

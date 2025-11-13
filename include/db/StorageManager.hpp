@@ -1,10 +1,12 @@
+using namespace std;
+
+
+
 #pragma once
 
 #include <string>
 #include <vector>
 
-using std::string;
-using std::vector;
 
 namespace db {
 
@@ -28,7 +30,7 @@ public:
                         const vector<vector<string>>& rows);
 
 private:
-    string base_path_;
+    string b_;
 };
 
-} // namespace db
+} 

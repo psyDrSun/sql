@@ -1,3 +1,7 @@
+using namespace std;
+
+
+
 #pragma once
 
 #include "Types.hpp"
@@ -8,11 +12,6 @@
 #include <string>
 #include <vector>
 
-using std::string;
-using std::vector;
-using std::size_t;
-using std::unique_ptr;
-using std::int64_t;
 
 namespace db {
 
@@ -117,9 +116,9 @@ struct AlterTableStatement : Statement {
     AlterTableStatement() : Statement(StatementType::AlterTable) {}
     AlterTableAction action{AlterTableAction::RenameTable};
     string table_name;
-    string new_table_name;      // For rename
-    ColumnDefinition column;         // For add/modify
-    string target_column_name;  // For drop/modify
+    string new_table_name;      
+    ColumnDefinition column;         
+    string target_column_name;  
 };
 
 struct InsertStatement : Statement {
@@ -174,4 +173,4 @@ struct SelectStatement : Statement {
 using StatementPtr = unique_ptr<Statement>;
 using StatementList = vector<StatementPtr>;
 
-} // namespace db
+} 

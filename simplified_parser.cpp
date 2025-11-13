@@ -1,18 +1,4 @@
-/*
- * ============================================================================
- * 简化版 SQL 解析器 - 标准编译流程演示
- * ============================================================================
- * 
- * 实现: 词法分析 → 语法分析 → 语义分析
- * 
- * 支持语句:
- *   - CREATE TABLE tablename (col1 INT, col2 VARCHAR);
- *   - INSERT INTO tablename VALUES (val1, val2);
- *   - SELECT * FROM tablename WHERE col = val;
- * 
- * 编译: g++ -std=c++17 simplified_parser.cpp -o simple_parser
- * 运行: ./simple_parser
- */
+
 
 #include <iostream>
 #include <string>
@@ -24,20 +10,20 @@
 
 using namespace std;
 
-// ============================================================================
-// 第一阶段: 词法分析 (Lexical Analysis)
-// ============================================================================
+
+
+
 
 enum class TokenType {
-    // 关键字
+    
     SELECT, INSERT, CREATE, TABLE, INTO, FROM, WHERE, VALUES,
-    // 数据类型
+    
     INT, VARCHAR,
-    // 标识符和字面量
+    
     IDENTIFIER, NUMBER, STRING,
-    // 符号
+    
     COMMA, SEMICOLON, LPAREN, RPAREN, STAR, EQUAL,
-    // 结束符
+    
     END_OF_FILE
 };
 
@@ -66,7 +52,7 @@ private:
         }
         string word = input.substr(start, pos - start);
         
-        // 关键字识别 (大小写不敏感)
+        
         string upper_word = word;
         for (char& c : upper_word) c = toupper(c);
         
@@ -81,7 +67,7 @@ private:
         if (upper_word == "INT")      return Token(TokenType::INT, word);
         if (upper_word == "VARCHAR")  return Token(TokenType::VARCHAR, word);
         
-        // 普通标识符
+        
         return Token(TokenType::IDENTIFIER, word);
     }
     
@@ -94,7 +80,7 @@ private:
     }
     
     Token scan_string() {
-        pos++; // 跳过开头的引号
+        pos++; 
         size_t start = pos;
         while (pos < input.size() && input[pos] != '\'') {
             pos++;
@@ -103,14 +89,14 @@ private:
             throw runtime_error("❌ 词法错误: 未结束的字符串字面量");
         }
         string value = input.substr(start, pos - start);
-        pos++; // 跳过结尾的引号
+        pos++; 
         return Token(TokenType::STRING, value);
     }
     
 public:
     Lexer(const string& sql) : input(sql), pos(0) {}
     
-    // 核心函数: 扫描所有 Token
+    
     vector<Token> tokenize() {
         vector<Token> tokens;
         
@@ -120,19 +106,19 @@ public:
             
             char ch = input[pos];
             
-            // 标识符或关键字
+            
             if (isalpha(ch) || ch == '_') {
                 tokens.push_back(scan_identifier());
             }
-            // 数字
+            
             else if (isdigit(ch)) {
                 tokens.push_back(scan_number());
             }
-            // 字符串
+            
             else if (ch == '\'') {
                 tokens.push_back(scan_string());
             }
-            // 符号
+            
             else if (ch == ',') {
                 tokens.push_back(Token(TokenType::COMMA, ","));
                 pos++;
@@ -166,7 +152,7 @@ public:
         return tokens;
     }
     
-    // 调试函数: 打印所有 Token
+    
     static void print_tokens(const vector<Token>& tokens) {
         cout << "\n📋 词法分析结果 (Token 流):\n";
         cout << "──────────────────────────────────────\n";
@@ -207,17 +193,17 @@ public:
     }
 };
 
-// ============================================================================
-// 第二阶段: 语法分析 (Syntax Analysis) - 构建抽象语法树 (AST)
-// ============================================================================
 
-// AST 节点基类
+
+
+
+
 struct ASTNode {
     virtual ~ASTNode() = default;
     virtual void print(int indent = 0) const = 0;
 };
 
-// 列定义节点
+
 struct ColumnDef : ASTNode {
     string name;
     string type;
@@ -229,7 +215,7 @@ struct ColumnDef : ASTNode {
     }
 };
 
-// CREATE TABLE 语句
+
 struct CreateTableStmt : ASTNode {
     string table_name;
     vector<unique_ptr<ColumnDef>> columns;
@@ -244,7 +230,7 @@ struct CreateTableStmt : ASTNode {
     }
 };
 
-// INSERT 语句
+
 struct InsertStmt : ASTNode {
     string table_name;
     vector<string> values;
@@ -262,7 +248,7 @@ struct InsertStmt : ASTNode {
     }
 };
 
-// SELECT 语句
+
 struct SelectStmt : ASTNode {
     string table_name;
     vector<string> columns;
@@ -285,7 +271,7 @@ struct SelectStmt : ASTNode {
     }
 };
 
-// 语法分析器
+
 class Parser {
 private:
     vector<Token> tokens;
@@ -299,7 +285,7 @@ private:
         if (pos + offset < tokens.size()) {
             return tokens[pos + offset];
         }
-        return tokens.back(); // EOF
+        return tokens.back(); 
     }
     
     void advance() {
@@ -320,7 +306,7 @@ private:
         advance();
     }
     
-    // 解析 CREATE TABLE
+    
     unique_ptr<CreateTableStmt> parse_create_table() {
         expect(TokenType::CREATE);
         expect(TokenType::TABLE, "CREATE TABLE");
@@ -335,7 +321,7 @@ private:
         
         expect(TokenType::LPAREN, "列定义");
         
-        // 解析列定义
+        
         while (current().type != TokenType::RPAREN) {
             if (current().type != TokenType::IDENTIFIER) {
                 throw runtime_error("❌ 语法错误: 列名必须是标识符");
@@ -364,7 +350,7 @@ private:
         return stmt;
     }
     
-    // 解析 INSERT
+    
     unique_ptr<InsertStmt> parse_insert() {
         expect(TokenType::INSERT);
         expect(TokenType::INTO, "INSERT INTO");
@@ -380,7 +366,7 @@ private:
         expect(TokenType::VALUES, "INSERT INTO");
         expect(TokenType::LPAREN, "VALUES");
         
-        // 解析值列表
+        
         while (current().type != TokenType::RPAREN) {
             if (current().type == TokenType::NUMBER || current().type == TokenType::STRING) {
                 stmt->values.push_back(current().value);
@@ -402,11 +388,11 @@ private:
         return stmt;
     }
     
-    // 解析 SELECT
+    
     unique_ptr<SelectStmt> parse_select() {
         expect(TokenType::SELECT);
         
-        // 解析列列表 (简化版只支持 *)
+        
         if (current().type == TokenType::STAR) {
             advance();
         } else {
@@ -424,7 +410,7 @@ private:
         auto stmt = make_unique<SelectStmt>(table_name);
         stmt->columns.push_back("*");
         
-        // 可选的 WHERE 子句
+        
         if (current().type == TokenType::WHERE) {
             advance();
             
@@ -452,7 +438,7 @@ private:
 public:
     Parser(vector<Token> toks) : tokens(std::move(toks)), pos(0) {}
     
-    // 核心函数: 解析入口
+    
     unique_ptr<ASTNode> parse() {
         if (current().type == TokenType::CREATE) {
             return parse_create_table();
@@ -466,31 +452,31 @@ public:
     }
 };
 
-// ============================================================================
-// 第三阶段: 语义分析 (Semantic Analysis)
-// ============================================================================
 
-// 简化的表模式
+
+
+
+
 struct TableSchema {
     string name;
-    vector<pair<string, string>> columns; // (列名, 类型)
+    vector<pair<string, string>> columns; 
 };
 
 class SemanticAnalyzer {
 private:
-    map<string, TableSchema> catalog; // 表目录
+    map<string, TableSchema> catalog; 
     
 public:
-    // 验证 CREATE TABLE
+    
     void analyze_create_table(const CreateTableStmt* stmt) {
         cout << "🔍 语义分析 [CREATE TABLE " << stmt->table_name << "]:\n";
         
-        // 检查表是否已存在
+        
         if (catalog.find(stmt->table_name) != catalog.end()) {
             throw runtime_error("❌ 语义错误: 表 '" + stmt->table_name + "' 已存在");
         }
         
-        // 检查列名重复
+        
         map<string, bool> col_names;
         for (const auto& col : stmt->columns) {
             if (col_names[col->name]) {
@@ -499,12 +485,12 @@ public:
             col_names[col->name] = true;
         }
         
-        // 检查列数量
+        
         if (stmt->columns.empty()) {
             throw runtime_error("❌ 语义错误: 表必须至少有一列");
         }
         
-        // 注册到目录
+        
         TableSchema schema;
         schema.name = stmt->table_name;
         for (const auto& col : stmt->columns) {
@@ -518,11 +504,11 @@ public:
         cout << "  ✓ 已注册到目录\n\n";
     }
     
-    // 验证 INSERT
+    
     void analyze_insert(const InsertStmt* stmt) {
         cout << "🔍 语义分析 [INSERT INTO " << stmt->table_name << "]:\n";
         
-        // 检查表是否存在
+        
         auto it = catalog.find(stmt->table_name);
         if (it == catalog.end()) {
             throw runtime_error("❌ 语义错误: 表 '" + stmt->table_name + "' 不存在");
@@ -530,13 +516,13 @@ public:
         
         const auto& schema = it->second;
         
-        // 检查值的数量
+        
         if (stmt->values.size() != schema.columns.size()) {
             throw runtime_error("❌ 语义错误: 值的数量(" + to_string(stmt->values.size()) + 
                               ") 与列数量(" + to_string(schema.columns.size()) + ") 不匹配");
         }
         
-        // 简化的类型检查 (仅检查 INT vs 字符串)
+        
         for (size_t i = 0; i < stmt->values.size(); i++) {
             const string& col_type = schema.columns[i].second;
             const string& value = stmt->values[i];
@@ -554,11 +540,11 @@ public:
         cout << "  ✓ 类型检查通过\n\n";
     }
     
-    // 验证 SELECT
+    
     void analyze_select(const SelectStmt* stmt) {
         cout << "🔍 语义分析 [SELECT FROM " << stmt->table_name << "]:\n";
         
-        // 检查表是否存在
+        
         auto it = catalog.find(stmt->table_name);
         if (it == catalog.end()) {
             throw runtime_error("❌ 语义错误: 表 '" + stmt->table_name + "' 不存在");
@@ -566,7 +552,7 @@ public:
         
         const auto& schema = it->second;
         
-        // 检查 WHERE 列是否存在
+        
         if (!stmt->where_column.empty()) {
             bool found = false;
             for (const auto& col : schema.columns) {
@@ -587,7 +573,7 @@ public:
         cout << "\n";
     }
     
-    // 统一入口
+    
     void analyze(const ASTNode* node) {
         if (auto* create_stmt = dynamic_cast<const CreateTableStmt*>(node)) {
             analyze_create_table(create_stmt);
@@ -617,9 +603,9 @@ public:
     }
 };
 
-// ============================================================================
-// 主程序 - 演示三阶段流程
-// ============================================================================
+
+
+
 
 void execute_sql(const string& sql, SemanticAnalyzer& analyzer) {
     cout << "\n" << string(70, '=') << "\n";
@@ -627,13 +613,13 @@ void execute_sql(const string& sql, SemanticAnalyzer& analyzer) {
     cout << string(70, '=') << "\n";
     
     try {
-        // 阶段1: 词法分析
+        
         cout << "\n【阶段 1/3】词法分析 (Lexical Analysis)\n";
         Lexer lexer(sql);
         vector<Token> tokens = lexer.tokenize();
         Lexer::print_tokens(tokens);
         
-        // 阶段2: 语法分析
+        
         cout << "【阶段 2/3】语法分析 (Syntax Analysis)\n";
         cout << "──────────────────────────────────────\n";
         Parser parser(tokens);
@@ -642,7 +628,7 @@ void execute_sql(const string& sql, SemanticAnalyzer& analyzer) {
         ast->print(2);
         cout << "\n";
         
-        // 阶段3: 语义分析
+        
         cout << "【阶段 3/3】语义分析 (Semantic Analysis)\n";
         cout << "──────────────────────────────────────\n";
         analyzer.analyze(ast.get());
@@ -665,26 +651,26 @@ int main() {
     
     SemanticAnalyzer analyzer;
     
-    // 测试1: CREATE TABLE
+    
     execute_sql("CREATE TABLE students (id INT, name VARCHAR, age INT);", analyzer);
     analyzer.print_catalog();
     
-    // 测试2: INSERT (成功)
+    
     execute_sql("INSERT INTO students VALUES (101, 'Alice', 20);", analyzer);
     
-    // 测试3: INSERT (失败 - 类型错误)
+    
     execute_sql("INSERT INTO students VALUES ('invalid', 'Bob', 22);", analyzer);
     
-    // 测试4: SELECT
+    
     execute_sql("SELECT * FROM students WHERE age = 20;", analyzer);
     
-    // 测试5: 表不存在
+    
     execute_sql("SELECT * FROM courses;", analyzer);
     
-    // 测试6: 词法错误
+    
     execute_sql("SELECT @ FROM students;", analyzer);
     
-    // 测试7: 语法错误
+    
     execute_sql("CREATE TABLE students id INT;", analyzer);
     
     return 0;

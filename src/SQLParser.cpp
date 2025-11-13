@@ -1,3 +1,5 @@
+
+
 #include "db/SQLParser.hpp"
 
 #include "db/AST.hpp"
@@ -9,6 +11,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+using namespace std;
+
+
+
 
 namespace db {
 namespace {
@@ -23,15 +29,15 @@ enum class TokenKind {
 
 struct Token {
     TokenKind kind{TokenKind::End};
-    std::string text;
+    string text;
 };
 
 class Tokenizer {
 public:
-    explicit Tokenizer(const std::string& input) : input_(input), pos_(0) {}
+    explicit Tokenizer(const string& input) : input_(input), pos_(0) {}
 
-    std::vector<Token> tokenize() {
-        std::vector<Token> tokens;
+    vector<Token> tokenize() {
+        vector<Token> tokens;
         Token token;
         do {
             token = next_token();
@@ -42,6 +48,7 @@ public:
 
 private:
     Token next_token() {
+        
         skip_whitespace();
         if (pos_ >= input_.size()) {
             return {TokenKind::End, ""};
@@ -49,10 +56,10 @@ private:
 
         char ch = input_[pos_];
 
-        if (std::isalpha(static_cast<unsigned char>(ch)) || ch == '_') {
+        if (isalpha(static_cast<unsigned char>(ch)) || ch == '_') {
             return consume_identifier();
         }
-        if (std::isdigit(static_cast<unsigned char>(ch))) {
+        if (isdigit(static_cast<unsigned char>(ch))) {
             return consume_number();
         }
         if (ch == '\'') {
@@ -63,16 +70,17 @@ private:
     }
 
     void skip_whitespace() {
-        while (pos_ < input_.size() && std::isspace(static_cast<unsigned char>(input_[pos_]))) {
+        
+        while (pos_ < input_.size() && isspace(static_cast<unsigned char>(input_[pos_]))) {
             ++pos_;
         }
     }
 
     Token consume_identifier() {
-        std::size_t start = pos_;
+        size_t start = pos_;
         while (pos_ < input_.size()) {
             char ch = input_[pos_];
-            if (!std::isalnum(static_cast<unsigned char>(ch)) && ch != '_') {
+            if (!isalnum(static_cast<unsigned char>(ch)) && ch != '_') {
                 break;
             }
             ++pos_;
@@ -81,16 +89,17 @@ private:
     }
 
     Token consume_number() {
-        std::size_t start = pos_;
-        while (pos_ < input_.size() && std::isdigit(static_cast<unsigned char>(input_[pos_]))) {
+        size_t start = pos_;
+        while (pos_ < input_.size() && isdigit(static_cast<unsigned char>(input_[pos_]))) {
             ++pos_;
         }
         return {TokenKind::Number, input_.substr(start, pos_ - start)};
     }
 
     Token consume_string() {
-        ++pos_; // skip opening quote
-        std::string value;
+        
+        ++pos_; 
+        string value;
         while (pos_ < input_.size()) {
             char ch = input_[pos_++];
             if (ch == '\'') {
@@ -104,11 +113,11 @@ private:
                 value.push_back(ch);
             }
         }
-        throw std::runtime_error("Unterminated string literal");
+        throw runtime_error("Unterminated string literal");
     }
 
     Token consume_symbol() {
-        static const std::vector<std::string> multi = {"<>", "<=", ">="};
+        static const vector<string> multi = {"<>", "<=", ">="};
         for (const auto& op : multi) {
             if (input_.compare(pos_, op.size(), op) == 0) {
                 pos_ += op.size();
@@ -117,19 +126,20 @@ private:
         }
 
         char ch = input_[pos_++];
-        return {TokenKind::Symbol, std::string(1, ch)};
+        return {TokenKind::Symbol, string(1, ch)};
     }
 
-    const std::string& input_;
-    std::size_t pos_;
+    const string& input_;
+    size_t pos_;
 };
 
 class TokenStream {
 public:
-    explicit TokenStream(std::vector<Token> tokens) : tokens_(std::move(tokens)) {}
+    explicit TokenStream(vector<Token> tokens) : tokens_(move(tokens)) {}
 
-    const Token& peek(std::size_t offset = 0) const {
-        std::size_t index = position_ + offset;
+    const Token& peek(size_t offset = 0) const {
+        
+        size_t index = position_ + offset;
         if (index >= tokens_.size()) {
             static const Token end{TokenKind::End, ""};
             return end;
@@ -145,7 +155,7 @@ public:
         return token;
     }
 
-    bool match_symbol(const std::string& symbol) {
+    bool match_symbol(const string& symbol) {
         if (peek().kind == TokenKind::Symbol && peek().text == symbol) {
             consume();
             return true;
@@ -153,13 +163,14 @@ public:
         return false;
     }
 
-    void expect_symbol(const std::string& symbol) {
+    void expect_symbol(const string& symbol) {
         if (!match_symbol(symbol)) {
-            throw std::runtime_error("Expected symbol '" + symbol + "'");
+            throw runtime_error("Expected symbol '" + symbol + "'");
         }
     }
 
-    bool match_keyword(const std::string& keyword) {
+    bool match_keyword(const string& keyword) {
+        
         if (peek().kind == TokenKind::Identifier && equals_ignore_case(peek().text, keyword)) {
             consume();
             return true;
@@ -167,34 +178,34 @@ public:
         return false;
     }
 
-    void expect_keyword(const std::string& keyword) {
+    void expect_keyword(const string& keyword) {
         if (!match_keyword(keyword)) {
-            throw std::runtime_error("Expected keyword '" + keyword + "'");
+            throw runtime_error("Expected keyword '" + keyword + "'");
         }
     }
 
-    std::string consume_identifier(const std::string& context) {
+    string consume_identifier(const string& context) {
         const auto& token = peek();
         if (token.kind != TokenKind::Identifier) {
-            throw std::runtime_error("Expected identifier for " + context);
+            throw runtime_error("Expected identifier for " + context);
         }
         consume();
         return token.text;
     }
 
-    std::string consume_number(const std::string& context) {
+    string consume_number(const string& context) {
         const auto& token = peek();
         if (token.kind != TokenKind::Number) {
-            throw std::runtime_error("Expected numeric literal for " + context);
+            throw runtime_error("Expected numeric literal for " + context);
         }
         consume();
         return token.text;
     }
 
-    std::string consume_string_literal() {
+    string consume_string_literal() {
         const auto& token = peek();
         if (token.kind != TokenKind::String) {
-            throw std::runtime_error("Expected string literal");
+            throw runtime_error("Expected string literal");
         }
         consume();
         return token.text;
@@ -202,54 +213,55 @@ public:
 
     void ensure_end() {
         if (peek().kind != TokenKind::End) {
-            throw std::runtime_error("Unexpected token: " + peek().text);
+            throw runtime_error("Unexpected token: " + peek().text);
         }
     }
 
 private:
-    static bool equals_ignore_case(const std::string& lhs, const std::string& rhs) {
+    static bool equals_ignore_case(const string& lhs, const string& rhs) {
+        
         if (lhs.size() != rhs.size()) {
             return false;
         }
-        for (std::size_t i = 0; i < lhs.size(); ++i) {
-            if (std::toupper(static_cast<unsigned char>(lhs[i])) !=
-                std::toupper(static_cast<unsigned char>(rhs[i]))) {
+        for (size_t i = 0; i < lhs.size(); ++i) {
+            if (toupper(static_cast<unsigned char>(lhs[i])) !=
+                toupper(static_cast<unsigned char>(rhs[i]))) {
                 return false;
             }
         }
         return true;
     }
 
-    std::vector<Token> tokens_;
-    std::size_t position_{0};
+    vector<Token> tokens_;
+    size_t position_{0};
 };
 
-std::string to_upper(std::string value) {
-    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
-        return static_cast<char>(std::toupper(ch));
+string to_upper(string value) {
+    transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(toupper(ch));
     });
     return value;
 }
 
-std::string trim(const std::string& input) {
+string trim(const string& input) {
     auto begin = input.begin();
-    while (begin != input.end() && std::isspace(static_cast<unsigned char>(*begin))) {
+    while (begin != input.end() && isspace(static_cast<unsigned char>(*begin))) {
         ++begin;
     }
     auto end = input.end();
-    while (end != begin && std::isspace(static_cast<unsigned char>(*(end - 1)))) {
+    while (end != begin && isspace(static_cast<unsigned char>(*(end - 1)))) {
         --end;
     }
-    return std::string(begin, end);
+    return string(begin, end);
 }
 
-bool is_reserved_keyword(const std::string& value) {
-    static const std::vector<std::string> reserved = {
+bool is_reserved_keyword(const string& value) {
+    static const vector<string> reserved = {
         "SELECT",  "FROM",   "WHERE",  "INNER",  "JOIN",   "LEFT",   "ON",     "AS",    "AND",
         "OR",      "INSERT", "INTO",   "VALUES", "UPDATE", "SET",    "DELETE", "CREATE", "TABLE",
         "DROP",    "ALTER",  "DISTINCT"};
     auto upper = to_upper(value);
-    return std::find(reserved.begin(), reserved.end(), upper) != reserved.end();
+    return find(reserved.begin(), reserved.end(), upper) != reserved.end();
 }
 
 ColumnDefinition parse_column_definition_tail(TokenStream& tokens, ColumnDefinition column) {
@@ -263,12 +275,12 @@ ColumnDefinition parse_column_definition_tail(TokenStream& tokens, ColumnDefinit
         if (tokens.match_symbol("(")) {
             auto length_str = tokens.consume_number("VARCHAR length");
             tokens.expect_symbol(")");
-            column.length = static_cast<std::size_t>(std::stoul(length_str));
+            column.length = static_cast<size_t>(stoul(length_str));
         } else {
             column.length = default_length(column.type);
         }
     } else {
-        throw std::runtime_error("Unsupported column type: " + type_token);
+        throw runtime_error("Unsupported column type: " + type_token);
     }
 
     return column;
@@ -277,7 +289,7 @@ ColumnDefinition parse_column_definition_tail(TokenStream& tokens, ColumnDefinit
 ColumnDefinition parse_column_definition(TokenStream& tokens) {
     ColumnDefinition column;
     column.name = tokens.consume_identifier("column name");
-    return parse_column_definition_tail(tokens, std::move(column));
+    return parse_column_definition_tail(tokens, move(column));
 }
 
 LiteralValue parse_literal(TokenStream& tokens) {
@@ -294,9 +306,9 @@ LiteralValue parse_literal(TokenStream& tokens) {
         LiteralValue value;
         value.type = LiteralType::Int;
         try {
-            value.int_value = std::stoll(number_text);
-        } catch (const std::exception&) {
-            throw std::runtime_error("Invalid INTEGER literal: " + number_text);
+            value.int_value = stoll(number_text);
+        } catch (const exception&) {
+            throw runtime_error("Invalid INTEGER literal: " + number_text);
         }
         return value;
     }
@@ -305,29 +317,29 @@ LiteralValue parse_literal(TokenStream& tokens) {
         value.type = LiteralType::Int;
         auto text = tokens.consume_number("numeric literal");
         try {
-            value.int_value = std::stoll(text);
-        } catch (const std::exception&) {
-            throw std::runtime_error("Invalid INTEGER literal: " + text);
+            value.int_value = stoll(text);
+        } catch (const exception&) {
+            throw runtime_error("Invalid INTEGER literal: " + text);
         }
         return value;
     }
-    throw std::runtime_error("Unsupported literal value: " + token.text);
+    throw runtime_error("Unsupported literal value: " + token.text);
 }
 
-std::unique_ptr<Expression> parse_operand_expression(TokenStream& tokens) {
+unique_ptr<Expression> parse_operand_expression(TokenStream& tokens) {
     const auto& token = tokens.peek();
     if (token.kind == TokenKind::String || token.kind == TokenKind::Number ||
         (token.kind == TokenKind::Symbol && token.text == "-" && tokens.peek(1).kind == TokenKind::Number)) {
-        auto literal_expr = std::make_unique<LiteralExpression>();
+        auto literal_expr = make_unique<LiteralExpression>();
         literal_expr->value = parse_literal(tokens);
         return literal_expr;
     }
 
     if (token.kind != TokenKind::Identifier) {
-        throw std::runtime_error("Expected column reference or literal, found: " + token.text);
+        throw runtime_error("Expected column reference or literal, found: " + token.text);
     }
 
-    auto column_expr = std::make_unique<ColumnExpression>();
+    auto column_expr = make_unique<ColumnExpression>();
     column_expr->table_alias = tokens.consume_identifier("column reference");
     if (tokens.match_symbol(".")) {
         column_expr->column_name = tokens.consume_identifier("column name");
@@ -341,7 +353,7 @@ std::unique_ptr<Expression> parse_operand_expression(TokenStream& tokens) {
 ComparisonOperator parse_comparison_operator(TokenStream& tokens) {
     const auto& token = tokens.peek();
     if (token.kind != TokenKind::Symbol) {
-        throw std::runtime_error("Expected comparison operator, found: " + token.text);
+        throw runtime_error("Expected comparison operator, found: " + token.text);
     }
 
     if (token.text == "=") {
@@ -369,29 +381,29 @@ ComparisonOperator parse_comparison_operator(TokenStream& tokens) {
         return ComparisonOperator::GreaterOrEqual;
     }
 
-    throw std::runtime_error("Unsupported comparison operator: " + token.text);
+    throw runtime_error("Unsupported comparison operator: " + token.text);
 }
 
-std::unique_ptr<Expression> parse_comparison(TokenStream& tokens) {
+unique_ptr<Expression> parse_comparison(TokenStream& tokens) {
     auto left = parse_operand_expression(tokens);
     auto op = parse_comparison_operator(tokens);
     auto right = parse_operand_expression(tokens);
 
-    auto comparison = std::make_unique<ComparisonExpression>();
+    auto comparison = make_unique<ComparisonExpression>();
     comparison->op = op;
-    comparison->left = std::move(left);
-    comparison->right = std::move(right);
+    comparison->left = move(left);
+    comparison->right = move(right);
     return comparison;
 }
 
-std::unique_ptr<Expression> parse_condition(TokenStream& tokens) {
+unique_ptr<Expression> parse_condition(TokenStream& tokens) {
     auto comparison = parse_comparison(tokens);
     if (!tokens.match_keyword("AND")) {
         return comparison;
     }
 
-    auto and_expr = std::make_unique<AndExpression>();
-    and_expr->terms.push_back(std::move(comparison));
+    auto and_expr = make_unique<AndExpression>();
+    and_expr->terms.push_back(move(comparison));
     do {
         and_expr->terms.push_back(parse_comparison(tokens));
     } while (tokens.match_keyword("AND"));
@@ -402,7 +414,7 @@ StatementPtr parse_create_table(TokenStream& tokens) {
     tokens.expect_keyword("CREATE");
     tokens.expect_keyword("TABLE");
 
-    auto stmt = std::make_unique<CreateTableStatement>();
+    auto stmt = make_unique<CreateTableStatement>();
     stmt->table_name = tokens.consume_identifier("table name");
     tokens.expect_symbol("(");
 
@@ -421,7 +433,7 @@ StatementPtr parse_create_table(TokenStream& tokens) {
 StatementPtr parse_drop_table(TokenStream& tokens) {
     tokens.expect_keyword("DROP");
     tokens.expect_keyword("TABLE");
-    auto stmt = std::make_unique<DropTableStatement>();
+    auto stmt = make_unique<DropTableStatement>();
     stmt->table_name = tokens.consume_identifier("table name");
     tokens.ensure_end();
     return stmt;
@@ -431,7 +443,7 @@ StatementPtr parse_alter_table(TokenStream& tokens) {
     tokens.expect_keyword("ALTER");
     tokens.expect_keyword("TABLE");
 
-    auto stmt = std::make_unique<AlterTableStatement>();
+    auto stmt = make_unique<AlterTableStatement>();
     stmt->table_name = tokens.consume_identifier("table name");
 
     if (tokens.match_keyword("RENAME")) {
@@ -463,7 +475,7 @@ StatementPtr parse_alter_table(TokenStream& tokens) {
         auto column_name = tokens.consume_identifier("column name");
         ColumnDefinition column;
         column.name = column_name;
-        auto column_def = parse_column_definition_tail(tokens, std::move(column));
+        auto column_def = parse_column_definition_tail(tokens, move(column));
         stmt->action = AlterTableAction::ModifyColumn;
         stmt->target_column_name = column_name;
         stmt->column = column_def;
@@ -471,14 +483,14 @@ StatementPtr parse_alter_table(TokenStream& tokens) {
         return stmt;
     }
 
-    throw std::runtime_error("Unsupported ALTER TABLE action");
+    throw runtime_error("Unsupported ALTER TABLE action");
 }
 
 StatementPtr parse_insert(TokenStream& tokens) {
     tokens.expect_keyword("INSERT");
     tokens.expect_keyword("INTO");
 
-    auto stmt = std::make_unique<InsertStatement>();
+    auto stmt = make_unique<InsertStatement>();
     stmt->table_name = tokens.consume_identifier("table name");
     tokens.expect_keyword("VALUES");
     tokens.expect_symbol("(");
@@ -493,7 +505,7 @@ StatementPtr parse_insert(TokenStream& tokens) {
 
 StatementPtr parse_update(TokenStream& tokens) {
     tokens.expect_keyword("UPDATE");
-    auto stmt = std::make_unique<UpdateStatement>();
+    auto stmt = make_unique<UpdateStatement>();
     stmt->table_name = tokens.consume_identifier("table name");
 
     tokens.expect_keyword("SET");
@@ -517,7 +529,7 @@ StatementPtr parse_delete(TokenStream& tokens) {
     tokens.expect_keyword("DELETE");
     tokens.expect_keyword("FROM");
 
-    auto stmt = std::make_unique<DeleteStatement>();
+    auto stmt = make_unique<DeleteStatement>();
     stmt->table_name = tokens.consume_identifier("table name");
 
     if (tokens.match_keyword("WHERE")) {
@@ -539,7 +551,7 @@ TableReference parse_table_reference(TokenStream& tokens) {
     return table;
 }
 
-std::unique_ptr<Expression> parse_join_condition(TokenStream& tokens) {
+unique_ptr<Expression> parse_join_condition(TokenStream& tokens) {
     tokens.expect_keyword("ON");
     return parse_condition(tokens);
 }
@@ -548,10 +560,10 @@ StatementPtr parse_select(TokenStream& tokens) {
     tokens.expect_keyword("SELECT");
 
     if (tokens.match_keyword("DISTINCT")) {
-        throw std::runtime_error("DISTINCT is not supported");
+        throw runtime_error("DISTINCT is not supported");
     }
 
-    auto stmt = std::make_unique<SelectStatement>();
+    auto stmt = make_unique<SelectStatement>();
 
     while (true) {
         SelectItem item;
@@ -573,7 +585,7 @@ StatementPtr parse_select(TokenStream& tokens) {
                 item.table_alias = column_expr->table_alias;
                 item.column_name = column_expr->column_name;
             } else {
-                throw std::runtime_error("SELECT list only supports column references");
+                throw runtime_error("SELECT list only supports column references");
             }
         }
 
@@ -598,9 +610,9 @@ StatementPtr parse_select(TokenStream& tokens) {
         if (tokens.match_keyword("INNER")) {
             tokens.expect_keyword("JOIN");
         } else if (tokens.match_keyword("JOIN")) {
-            // simple JOIN behaves like INNER JOIN
+            
         } else if (tokens.match_keyword("LEFT")) {
-            throw std::runtime_error("LEFT JOIN is not supported");
+            throw runtime_error("LEFT JOIN is not supported");
         } else {
             break;
         }
@@ -608,7 +620,7 @@ StatementPtr parse_select(TokenStream& tokens) {
         JoinClause clause;
         clause.table = parse_table_reference(tokens);
         clause.condition = parse_join_condition(tokens);
-        stmt->joins.push_back(std::move(clause));
+        stmt->joins.push_back(move(clause));
     }
 
     if (tokens.match_keyword("WHERE")) {
@@ -619,14 +631,14 @@ StatementPtr parse_select(TokenStream& tokens) {
     return stmt;
 }
 
-} // namespace
+} 
 
 SQLParser::SQLParser() = default;
 
-StatementPtr SQLParser::parse(const std::string& sql) {
+StatementPtr SQLParser::parse(const string& sql) {
     auto trimmed = trim(sql);
     if (trimmed.empty()) {
-        throw std::runtime_error("Empty statement");
+        throw runtime_error("Empty statement");
     }
 
     if (!trimmed.empty() && trimmed.back() == ';') {
@@ -663,7 +675,7 @@ StatementPtr SQLParser::parse(const std::string& sql) {
         }
     }
 
-    throw std::runtime_error("Unsupported SQL statement");
+    throw runtime_error("Unsupported SQL statement");
 }
 
-} // namespace db
+} 

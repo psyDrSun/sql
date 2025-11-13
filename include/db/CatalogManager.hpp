@@ -1,3 +1,7 @@
+using namespace std;
+
+
+
 #pragma once
 
 #include "Types.hpp"
@@ -8,11 +12,6 @@
 #include <unordered_map>
 #include <vector>
 
-using std::string;
-using std::vector;
-using std::size_t;
-using std::optional;
-using std::unordered_map;
 
 namespace db {
 
@@ -47,8 +46,8 @@ private:
     void load_catalog();
     void persist_catalog() const;
 
-    unordered_map<string, TableSchema> tables_;
-    string catalog_path_;
+    unordered_map<string, TableSchema> t_;
+    string c_;
 };
 
-} // namespace db
+} 

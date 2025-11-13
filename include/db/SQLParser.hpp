@@ -1,3 +1,7 @@
+using namespace std;
+
+
+
 #pragma once
 
 #include "AST.hpp"
@@ -5,8 +9,6 @@
 #include <memory>
 #include <string>
 
-using std::shared_ptr;
-using std::string;
 
 namespace db {
 
@@ -18,4 +20,4 @@ public:
 
 using SQLParserPtr = shared_ptr<SQLParser>;
 
-} // namespace db
+} 

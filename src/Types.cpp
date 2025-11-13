@@ -4,9 +4,11 @@
 #include <cctype>
 #include <stdexcept>
 #include <string>
+using namespace std;
 
-using std::size_t;
-using std::string;
+
+
+
 
 namespace db {
 
@@ -34,8 +36,8 @@ string type_to_string(DataType type) {
 
 DataType parse_type(const string& type_name) {
     string upper = type_name;
-    std::transform(upper.begin(), upper.end(), upper.begin(), [](unsigned char ch) {
-        return static_cast<char>(std::toupper(ch));
+    transform(upper.begin(), upper.end(), upper.begin(), [](unsigned char ch) {
+        return static_cast<char>(toupper(ch));
     });
 
     if (upper == "INT") {
@@ -44,7 +46,7 @@ DataType parse_type(const string& type_name) {
     if (upper == "VARCHAR") {
         return DataType::Varchar;
     }
-    throw std::runtime_error("Unknown data type: " + type_name);
+    throw runtime_error("Unknown data type: " + type_name);
 }
 
-} // namespace db
+} 

@@ -1,14 +1,4 @@
-/*
- * ============================================================================
- * 简化版 SQL 解析器 - 文件读取版本
- * ============================================================================
- * 
- * 使用方法:
- *   ./test_parser demo.sql
- * 
- * 或者 watch 模式 (监听文件变化):
- *   ./test_parser --watch demo.sql
- */
+
 
 #include <iostream>
 #include <string>
@@ -22,9 +12,9 @@
 
 using namespace std;
 
-// ============================================================================
-// Token 和 Lexer (与之前相同)
-// ============================================================================
+
+
+
 
 enum class TokenType {
     SELECT, INSERT, CREATE, TABLE, INTO, FROM, WHERE, VALUES,
@@ -47,12 +37,12 @@ private:
     
     void skip_whitespace_and_comments() {
         while (pos < input.size()) {
-            // 跳过空白
+            
             if (isspace(input[pos])) {
                 pos++;
                 continue;
             }
-            // 跳过 SQL 注释 --
+            
             if (pos + 1 < input.size() && input[pos] == '-' && input[pos + 1] == '-') {
                 while (pos < input.size() && input[pos] != '\n') {
                     pos++;
@@ -189,9 +179,9 @@ public:
     }
 };
 
-// ============================================================================
-// AST 节点
-// ============================================================================
+
+
+
 
 struct ASTNode {
     virtual ~ASTNode() = default;
@@ -254,9 +244,9 @@ struct SelectStmt : ASTNode {
     }
 };
 
-// ============================================================================
-// Parser
-// ============================================================================
+
+
+
 
 class Parser {
 private:
@@ -417,9 +407,9 @@ public:
     }
 };
 
-// ============================================================================
-// Semantic Analyzer
-// ============================================================================
+
+
+
 
 struct TableSchema {
     string name;
@@ -537,9 +527,9 @@ public:
     }
 };
 
-// ============================================================================
-// 文件处理和主程序
-// ============================================================================
+
+
+
 
 string read_file(const string& filename) {
     ifstream file(filename);
@@ -559,7 +549,7 @@ vector<string> split_statements(const string& sql) {
     for (char ch : sql) {
         current += ch;
         if (ch == ';') {
-            // 去掉空白
+            
             string trimmed;
             for (char c : current) {
                 if (!isspace(c) || !trimmed.empty()) {
@@ -592,7 +582,7 @@ void execute_file(const string& filename) {
         for (size_t i = 0; i < statements.size(); i++) {
             string sql = statements[i];
             
-            // 跳过空语句和纯注释
+            
             bool is_empty = true;
             for (char ch : sql) {
                 if (!isspace(ch) && ch != ';' && ch != '-') {
@@ -605,7 +595,7 @@ void execute_file(const string& filename) {
             cout << "\n[语句 " << (i + 1) << "]\n";
             cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
             
-            // 显示 SQL (去掉前后空白)
+            
             string trimmed_sql = sql;
             size_t first = trimmed_sql.find_first_not_of(" \t\n\r");
             size_t last = trimmed_sql.find_last_not_of(" \t\n\r");
@@ -615,20 +605,20 @@ void execute_file(const string& filename) {
             cout << "📝 " << trimmed_sql << "\n\n";
             
             try {
-                // 词法分析
+                
                 Lexer lexer(sql);
                 vector<Token> tokens = lexer.tokenize();
                 
-                // 语法分析
+                
                 Parser parser(tokens);
                 unique_ptr<ASTNode> ast = parser.parse();
                 
-                if (!ast) continue; // 空语句
+                if (!ast) continue; 
                 
-                // 显示 AST
+                
                 ast->print(0);
                 
-                // 语义分析
+                
                 cout << "\n";
                 analyzer.analyze(ast.get());
                 
@@ -641,10 +631,10 @@ void execute_file(const string& filename) {
             }
         }
         
-        // 显示表目录
+        
         analyzer.print_catalog();
         
-        // 统计
+        
         cout << "\n" << string(70, '=') << "\n";
         cout << "📊 执行统计: ";
         cout << "成功 " << success_count << " 条";

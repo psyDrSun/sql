@@ -8,19 +8,11 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+using namespace std;
 
-using std::string;
-using std::vector;
-using std::size_t;
-using std::optional;
-using std::ifstream;
-using std::ofstream;
-using std::stringstream;
-using std::getline;
-using std::stoul;
-using std::nullopt;
-using std::remove_if;
-using std::find_if;
+
+
+
 
 namespace db {
 
@@ -38,101 +30,101 @@ vector<string> split(const string& input, char delim) {
     return tokens;
 }
 
-} // namespace
+} 
 
 CatalogManager::CatalogManager()
-    : catalog_path_(kCatalogFile) {
-    std::filesystem::create_directories(kCatalogDir);
+    : c_(kCatalogFile) {
+    filesystem::create_directories(kCatalogDir);
     load_catalog();
 }
 
-bool CatalogManager::table_exists(const string& table_name) const {
-    return tables_.find(table_name) != tables_.end();
+bool CatalogManager::table_exists(const string& n) const {
+    return t_.find(n) != t_.end();
 }
 
-optional<TableSchema> CatalogManager::get_table(const string& table_name) const {
-    auto it = tables_.find(table_name);
-    if (it == tables_.end()) {
+optional<TableSchema> CatalogManager::get_table(const string& n) const {
+    auto it = t_.find(n);
+    if (it == t_.end()) {
         return nullopt;
     }
     return it->second;
 }
 
-void CatalogManager::create_table(const TableSchema& schema) {
-    if (table_exists(schema.name)) {
-        throw std::runtime_error("Table already exists: " + schema.name);
+void CatalogManager::create_table(const TableSchema& s) {
+    if (table_exists(s.name)) {
+        throw runtime_error("Table already exists: " + s.name);
     }
-    tables_.emplace(schema.name, schema);
+    t_.emplace(s.name, s);
     persist_catalog();
 }
 
-void CatalogManager::drop_table(const string& table_name) {
-    if (!table_exists(table_name)) {
-        throw std::runtime_error("Table does not exist: " + table_name);
+void CatalogManager::drop_table(const string& n) {
+    if (!table_exists(n)) {
+        throw runtime_error("Table does not exist: " + n);
     }
-    tables_.erase(table_name);
+    t_.erase(n);
     persist_catalog();
 }
 
-void CatalogManager::rename_table(const string& old_name, const string& new_name) {
-    if (!table_exists(old_name)) {
-        throw std::runtime_error("Table does not exist: " + old_name);
+void CatalogManager::rename_table(const string& o, const string& nn) {
+    if (!table_exists(o)) {
+        throw runtime_error("Table does not exist: " + o);
     }
-    if (table_exists(new_name)) {
-        throw std::runtime_error("Target table already exists: " + new_name);
+    if (table_exists(nn)) {
+        throw runtime_error("Target table already exists: " + nn);
     }
-    auto schema = tables_.at(old_name);
-    schema.name = new_name;
-    tables_.erase(old_name);
-    tables_.emplace(new_name, std::move(schema));
+    auto sch = t_.at(o);
+    sch.name = nn;
+    t_.erase(o);
+    t_.emplace(nn, move(sch));
     persist_catalog();
 }
 
-void CatalogManager::add_column(const string& table_name, const ColumnSchema& column) {
-    auto it = tables_.find(table_name);
-    if (it == tables_.end()) {
-        throw std::runtime_error("Table does not exist: " + table_name);
+void CatalogManager::add_column(const string& tn, const ColumnSchema& c) {
+    auto it = t_.find(tn);
+    if (it == t_.end()) {
+        throw runtime_error("Table does not exist: " + tn);
     }
-    it->second.columns.push_back(column);
+    it->second.columns.push_back(c);
     persist_catalog();
 }
 
-void CatalogManager::drop_column(const string& table_name, const string& column_name) {
-    auto it = tables_.find(table_name);
-    if (it == tables_.end()) {
-        throw std::runtime_error("Table does not exist: " + table_name);
+void CatalogManager::drop_column(const string& tn, const string& cn) {
+    auto it = t_.find(tn);
+    if (it == t_.end()) {
+        throw runtime_error("Table does not exist: " + tn);
     }
 
     auto& columns = it->second.columns;
     auto new_end = remove_if(columns.begin(), columns.end(), [&](const ColumnSchema& col) {
-        return col.name == column_name;
+        return col.name == cn;
     });
 
     if (new_end == columns.end()) {
-        throw std::runtime_error("Column does not exist: " + column_name);
+        throw runtime_error("Column does not exist: " + cn);
     }
 
     columns.erase(new_end, columns.end());
     persist_catalog();
 }
 
-void CatalogManager::modify_column(const string& table_name, const ColumnSchema& column) {
-    auto it = tables_.find(table_name);
-    if (it == tables_.end()) {
-        throw std::runtime_error("Table does not exist: " + table_name);
+void CatalogManager::modify_column(const string& tn, const ColumnSchema& c) {
+    auto it = t_.find(tn);
+    if (it == t_.end()) {
+        throw runtime_error("Table does not exist: " + tn);
     }
 
     auto& columns = it->second.columns;
     auto found = find_if(columns.begin(), columns.end(), [&](ColumnSchema& col) {
-        return col.name == column.name;
+        return col.name == c.name;
     });
 
     if (found == columns.end()) {
-        throw std::runtime_error("Column does not exist: " + column.name);
+        throw runtime_error("Column does not exist: " + c.name);
     }
 
-    found->type = column.type;
-    found->length = column.length;
+    found->type = c.type;
+    found->length = c.length;
     persist_catalog();
 }
 
@@ -141,9 +133,9 @@ void CatalogManager::refresh() {
 }
 
 void CatalogManager::load_catalog() {
-    tables_.clear();
+    t_.clear();
 
-    ifstream input(catalog_path_);
+    ifstream input(c_);
     if (!input.is_open()) {
         return;
     }
@@ -183,17 +175,17 @@ void CatalogManager::load_catalog() {
             schema.columns.push_back(column);
         }
 
-        tables_.emplace(schema.name, std::move(schema));
+        t_.emplace(schema.name, move(schema));
     }
 }
 
 void CatalogManager::persist_catalog() const {
-    ofstream output(catalog_path_, std::ios::trunc);
+    ofstream output(c_, ios::trunc);
     if (!output.is_open()) {
-        throw std::runtime_error("Failed to open catalog file for writing");
+        throw runtime_error("Failed to open catalog file for writing");
     }
 
-    for (const auto& [name, schema] : tables_) {
+    for (const auto& [name, schema] : t_) {
         output << name << '|';
         for (size_t i = 0; i < schema.columns.size(); ++i) {
             const auto& column = schema.columns[i];
@@ -206,4 +198,4 @@ void CatalogManager::persist_catalog() const {
     }
 }
 
-} // namespace db
+} 

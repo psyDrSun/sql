@@ -1,3 +1,7 @@
+using namespace std;
+
+
+
 #pragma once
 
 #include "AST.hpp"
@@ -5,8 +9,6 @@
 #include <memory>
 #include <string>
 
-using std::shared_ptr;
-using std::string;
 
 namespace db {
 
@@ -21,8 +23,8 @@ public:
     string execute(const Statement& statement);
 
 private:
-    shared_ptr<CatalogManager> catalog_;
-    shared_ptr<StorageManager> storage_;
+    shared_ptr<CatalogManager> c_;
+    shared_ptr<StorageManager> s_;
 
     string handle_create_table(const CreateTableStatement& statement);
     string handle_drop_table(const DropTableStatement& statement);
@@ -35,4 +37,4 @@ private:
 
 using ExecutionEnginePtr = shared_ptr<ExecutionEngine>;
 
-} // namespace db
+} 
